@@ -23,7 +23,7 @@ services:
       - 5001:5001
 
   lotus:
-    image: textile/lotus-devnet:ntwk-butterfly-v7.20.0
+    image: textile/lotus-devnet:ntwk-calibration-7.21.1-2
     ports:
       - 7777:7777
     environment:
