@@ -44,7 +44,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 		err := pool.Purge(lotusDevnet)
 		require.NoError(t, err)
 	})
-	debug := true
+	debug := false
 	if debug {
 		go func() {
 			opts := docker.LogsOptions{

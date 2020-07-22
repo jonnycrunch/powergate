@@ -22,7 +22,7 @@ docs-pow:
 .PHONY: docs-pow
 
 test:
-	go test -short -parallel 1 -race -timeout 30m ./... 
+	go test -short -parallel 3 -race -timeout 30m ./... 
 .PHONY: test
 
 clean-protos:
