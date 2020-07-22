@@ -24,7 +24,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 	require.NoError(t, err)
 	envs := []string{
 		devnetEnv("NUMMINERS", strconv.Itoa(numMiners)),
-		devnetEnv("SPEED", "500"),
+		devnetEnv("SPEED", "200"),
 		devnetEnv("IPFSADDR", ipfsMaddr),
 		devnetEnv("BIGSECTORS", false),
 	}
@@ -41,10 +41,10 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 	require.NoError(t, err)
 	time.Sleep(time.Second * time.Duration(2+numMiners))
 	t.Cleanup(func() {
-		err = pool.Purge(lotusDevnet)
+		err := pool.Purge(lotusDevnet)
 		require.NoError(t, err)
 	})
-	debug := false
+	debug := true
 	if debug {
 		go func() {
 			opts := docker.LogsOptions{
@@ -61,7 +61,7 @@ func LaunchDevnetDocker(t *testing.T, numMiners int, ipfsMaddr string, mountVolu
 				OutputStream: os.Stdout,
 			}
 
-			err = pool.Client.Logs(opts)
+			err := pool.Client.Logs(opts)
 			require.NoError(t, err)
 		}()
 	}
