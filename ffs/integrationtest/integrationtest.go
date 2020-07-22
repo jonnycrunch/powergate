@@ -39,9 +39,7 @@ const (
 	iWalletBal int64 = 4000000000000000
 )
 
-func TestLol(t *testing.T) {
-}
-
+// RequireIpfsUnpinnedCid checks that a cid is unpinned in the IPFS node.
 func RequireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
@@ -50,6 +48,7 @@ func RequireIpfsUnpinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfs
 	}
 }
 
+// RequireIpfsPinnedCid checks that a cid is pinned in the IPFS node.
 func RequireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAPI *httpapi.HttpApi) {
 	pins, err := ipfsAPI.Pin().Ls(ctx)
 	require.NoError(t, err)
@@ -64,18 +63,21 @@ func RequireIpfsPinnedCid(ctx context.Context, t *testing.T, cid cid.Cid, ipfsAP
 	require.True(t, pinned, "Cid should be pinned in IPFS node")
 }
 
+// RequireFilUnstored checks that a cid is not stored in the Filecoin network.
 func RequireFilUnstored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.Empty(t, offers)
 }
 
+// RequireFilStored cehcks that a cid is stored in the Filecoin network.
 func RequireFilStored(ctx context.Context, t *testing.T, client *apistruct.FullNodeStruct, c cid.Cid) {
 	offers, err := client.ClientFindData(ctx, c, nil)
 	require.NoError(t, err)
 	require.NotEmpty(t, offers)
 }
 
+// NewAPI returns a new set of components for FFS.
 func NewAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeStruct, *api.API, func()) {
 	ds := tests.NewTxMapDatastore()
 	ipfs, ipfsMAddr := CreateIPFS(t)
@@ -93,6 +95,7 @@ func NewAPI(t *testing.T, numMiners int) (*httpapi.HttpApi, *apistruct.FullNodeS
 	}
 }
 
+// CreateIPFS creates a docker container running IPFS.
 func CreateIPFS(t *testing.T) (*httpapi.HttpApi, string) {
 	ipfsDocker, cls := tests.LaunchIPFSDocker(t)
 	t.Cleanup(func() { cls() })
@@ -105,6 +108,7 @@ func CreateIPFS(t *testing.T) (*httpapi.HttpApi, string) {
 	return ipfs, ipfsDockerMAddr
 }
 
+// NewDevnet creates a localnet.
 func NewDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *apistruct.FullNodeStruct, ffs.MinerSelector) {
 	client, addr, _ := tests.CreateLocalDevnetWithIPFS(t, numMiners, ipfsAddr, false)
 	addrs := make([]string, numMiners)
@@ -120,6 +124,7 @@ func NewDevnet(t *testing.T, numMiners int, ipfsAddr string) (address.Address, *
 	return addr, client, ms
 }
 
+// NewFFSManager returns a new FFS manager.
 func NewFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistruct.FullNodeStruct, masterAddr address.Address, ms ffs.MinerSelector, ipfsClient *httpapi.HttpApi) (*manager.Manager, func()) {
 	dm, err := dealsModule.New(txndstr.Wrap(ds, "deals"), lotusClient)
 	require.NoError(t, err)
@@ -171,6 +176,7 @@ func NewFFSManager(t *testing.T, ds datastore.TxnDatastore, lotusClient *apistru
 	}
 }
 
+// RequireJobState watches a Job for a desired status.
 func RequireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobStatus) ffs.Job {
 	t.Helper()
 	ch := make(chan ffs.Job)
@@ -206,6 +212,7 @@ func RequireJobState(t *testing.T, fapi *api.API, jid ffs.JobID, status ffs.JobS
 	return res
 }
 
+// RequireStorageConfig compares a cid storage config against a target.
 func RequireStorageConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.StorageConfig) {
 	if config == nil {
 		defConfig := fapi.DefaultStorageConfig()
@@ -216,6 +223,7 @@ func RequireStorageConfig(t *testing.T, fapi *api.API, c cid.Cid, config *ffs.St
 	require.Equal(t, *config, currentConfig)
 }
 
+// RequireStorageDealRecord checks that a storage deal record exist for a cid.
 func RequireStorageDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
 	time.Sleep(time.Second)
 	recs, err := fapi.ListStorageDealRecords(deals.WithIncludeFinal(true))
@@ -224,6 +232,7 @@ func RequireStorageDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
 	require.Equal(t, c, recs[0].RootCid)
 }
 
+// RequireRetrievalDealRecord checks that a retrieval deal record exits for a cid.
 func RequireRetrievalDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
 	recs, err := fapi.ListRetrievalDealRecords()
 	require.NoError(t, err)
@@ -231,16 +240,19 @@ func RequireRetrievalDealRecord(t *testing.T, fapi *api.API, c cid.Cid) {
 	require.Equal(t, c, recs[0].DealInfo.RootCid)
 }
 
+// RandomBytes returns a slice of random bytes of a desired size.
 func RandomBytes(r *rand.Rand, size int) []byte {
 	buf := make([]byte, size)
 	_, _ = r.Read(buf)
 	return buf
 }
 
+// AddRandomFile adds a random file to the IPFS node.
 func AddRandomFile(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi) (cid.Cid, []byte) {
 	return AddRandomFileSize(t, r, ipfs, 600)
 }
 
+// AddRandomFileSize adds a random file with a specified size to the IPFS node.
 func AddRandomFileSize(t *testing.T, r *rand.Rand, ipfs *httpapi.HttpApi, size int) (cid.Cid, []byte) {
 	t.Helper()
 	data := RandomBytes(r, size)
