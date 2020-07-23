@@ -151,6 +151,7 @@ func TestInfo(t *testing.T) {
 	r := rand.New(rand.NewSource(22))
 	n := 3
 	for i := 0; i < n; i++ {
+		fmt.Println(i)
 		cid, _ := it.AddRandomFile(t, r, ipfs)
 		jid, err := fapi.PushStorageConfig(cid)
 		require.NoError(t, err)
